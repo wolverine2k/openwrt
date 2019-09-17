@@ -87,7 +87,6 @@ ramips_setup_interfaces()
 	dir-300-b7|\
 	dir-320-b1|\
 	dir-610-a1|\
-	dir-615-h1|\
 	dir-810l|\
 	dlink,dwr-116-a1|\
 	dlink,dwr-921-c1|\
@@ -114,8 +113,6 @@ ramips_setup_interfaces()
 	pbr-m1|\
 	psg1208|\
 	psg1218a|\
-	r6220|\
-	netgear,r6350|\
 	rt-n12p|\
 	sap-g3200u3|\
 	sk-wb8|\
@@ -130,7 +127,6 @@ ramips_setup_interfaces()
 	whr-g300n|\
 	mqmaker,witi-256m|\
 	mqmaker,witi-512m|\
-	wndr3700v5|\
 	youku-yk1|\
 	youku,yk-l2|\
 	zbt-ape522ii|\
@@ -213,6 +209,7 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "6t@eth0"
 		;;
+	asus,rt-ac57u|\
 	atp-52b|\
 	awm002-evb-4M|\
 	awm002-evb-8M|\
@@ -354,7 +351,10 @@ ramips_setup_interfaces()
 			"0:lan" "1:lan" "2:lan" "3:lan" "6t@eth0"
 		ucidef_set_interface_wan "usb0"
 		;;
-	netgear,r6120)
+	netgear,r6120|\
+	r6220|\
+	netgear,r6350|\
+	wndr3700v5)
 		ucidef_add_switch "switch0" \
 			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4:wan" "6@eth0"
 		;;
@@ -495,6 +495,11 @@ ramips_setup_macs()
 	wmdr-143n)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		;;
+	asus,rt-ac57u|\
+	vr500)
+		lan_mac=$(mtd_get_mac_binary factory 57344)
+		wan_mac=$(mtd_get_mac_binary factory 57350)
+		;;
 	carambola|\
 	freestation5|\
 	w502u|\
@@ -508,7 +513,6 @@ ramips_setup_macs()
 	dir-320-b1|\
 	dir-620-a1|\
 	esr-9753|\
-	freestation5|\
 	hilink,hlk-7628n|\
 	hlk-rm04|\
 	mpr-a1|\
@@ -553,7 +557,8 @@ ramips_setup_macs()
 	e1700)
 		wan_mac=$(mtd_get_mac_ascii config WAN_MAC_ADDR)
 		;;
-	edimax,br-6478ac-v2)
+	edimax,br-6478ac-v2|\
+	netgear,r6350)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		wan_mac=$(macaddr_add "$lan_mac" 2)
 		;;
@@ -622,12 +627,6 @@ ramips_setup_macs()
 		lan_mac=$(mtd_get_mac_binary factory 40)
 		wan_mac=$(mtd_get_mac_binary factory 46)
 		;;
-	r6220|\
-	netgear,r6350|\
-	wndr3700v5)
-		wan_mac=$(mtd_get_mac_binary factory 4)
-		lan_mac=$(macaddr_add "$wan_mac" 1)
-		;;
 	rt-n56u)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		lan_mac=$(macaddr_setbit_la "$lan_mac")
@@ -646,10 +645,6 @@ ramips_setup_macs()
 	tiny-ac)
 		lan_mac=$(mtd_get_mac_ascii u-boot-env LAN_MAC_ADDR)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env WAN_MAC_ADDR)
-		;;
-	vr500)
-		lan_mac=$(mtd_get_mac_binary factory 57344)
-		wan_mac=$(mtd_get_mac_binary factory 57350)
 		;;
 	w306r-v20)
 		lan_mac=$(cat /sys/class/net/eth0/address)

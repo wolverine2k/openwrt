@@ -287,7 +287,7 @@ define Device/ex2700
 	netgear-dni
   DEVICE_TITLE := Netgear EX2700
 endef
-TARGET_DEVICES += ex2700
+#TARGET_DEVICES += ex2700
 
 define Device/ex3700-ex3800
   NETGEAR_BOARD_ID := U12H319T00_NETGEAR
@@ -730,7 +730,7 @@ define Device/wt3020-4M
 	poray-header -B WT3020 -F 4M
   DEVICE_TITLE := Nexx WT3020 (4MB)
 endef
-TARGET_DEVICES += wt3020-4M
+#TARGET_DEVICES += wt3020-4M
 
 define Device/wt3020-8M
   DTS := WT3020-8M
