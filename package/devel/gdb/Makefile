@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gdb
-PKG_VERSION:=8.2.1
-PKG_RELEASE:=2
+PKG_VERSION:=10.2
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gdb
-PKG_HASH:=0a6a432907a03c5c8eaad3c3cffd50c00a40c3a5e3c4039440624bae703f2202
+PKG_HASH:=aaa1223d534c9b700a8bec952d9748ee1977513f178727e1bee520ee000b4f29
 
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
@@ -21,11 +21,12 @@ PKG_LICENSE:=GPL-3.0+
 PKG_CPE_ID:=cpe:/a:gnu:gdb
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/nls.mk
 
 define Package/gdb/Default
   SECTION:=devel
   CATEGORY:=Development
-  DEPENDS:=+!USE_MUSL:libthread-db +PACKAGE_zlib:zlib
+  DEPENDS:=+!USE_MUSL:libthread-db $(ICONV_DEPENDS) $(INTL_DEPENDS)
   URL:=https://www.gnu.org/software/gdb/
 endef
 
@@ -54,15 +55,20 @@ endef
 # XXX: add --disable-werror to prevent build failure with arm
 CONFIGURE_ARGS+= \
 	--with-system-readline \
+	--with-system-zlib \
 	--without-expat \
 	--without-lzma \
+	--disable-unit-tests \
+	--disable-ubsan \
 	--disable-sim \
-	--disable-werror
+	--disable-werror \
+	--disable-source-highlight
 
 CONFIGURE_VARS+= \
 	ac_cv_search_tgetent="$(TARGET_LDFLAGS) -lncurses -lreadline"
 
 TARGET_LDFLAGS+= \
+	$(INTL_LDFLAGS) $(if $(INTL_FULL),-lintl) \
 	-static-libstdc++ \
 	-Wl,--gc-sections
 
@@ -70,7 +76,7 @@ define Build/Install
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
 		CPPFLAGS="$(TARGET_CPPFLAGS)" \
-		install-gdb
+		install-gdb install-gdbserver
 endef
 
 define Package/gdb/install

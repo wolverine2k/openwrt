@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 
+#include "qca956x.dtsi"
+
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
-
-#include "qca956x.dtsi"
 
 / {
 	aliases {
@@ -13,23 +13,18 @@
 		led-upgrade = &led_blue;
 	};
 
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
-	};
-
 	leds {
 		compatible = "gpio-leds";
 
 		led_white: led_white {
-			label = "ubnt:white:dome";
+			label = "white:dome";
 			gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
 		};
 
 		led_blue: led_blue {
-			label = "ubnt:blue:dome";
+			label = "blue:dome";
 			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
 		};
-
 	};
 
 	keys {
@@ -44,21 +39,12 @@
 	};
 };
 
-&uart {
-	status = "okay";
-};
-
-&gpio {
-	status = "okay";
-};
-
 &pcie {
 	status = "okay";
 };
 
 &spi {
 	status = "okay";
-	num-cs = <1>;
 
 	flash@0 {
 		compatible = "jedec,spi-nor";
@@ -89,7 +75,7 @@
 			};
 
 			partition@800000 {
-				label = "ubnt-airos";
+				label = "kernel1";
 				reg = <0x800000 0x790000>;
 				read-only;
 			};
@@ -105,8 +91,8 @@
 				read-only;
 			};
 
-			eeprom: partition@ff0000 {
-				label = "EEPROM";
+			art: partition@ff0000 {
+				label = "art";
 				reg = <0xff0000 0x010000>;
 				read-only;
 			};
@@ -116,6 +102,16 @@
 
 &wmac {
 	status = "okay";
-	mtd-cal-data = <&eeprom 0x1000>;
-	mtd-mac-address = <&eeprom 0x0>;
+
+	mtd-cal-data = <&art 0x1000>;
+};
+
+&art {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_art_0: macaddr@0 {
+		reg = <0x0 0x6>;
+	};
 };

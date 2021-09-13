@@ -1,12 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  *
  *  Copyright (C) 2012 OpenWrt.org
  *  Copyright (C) 2012 Mikko Hissa <mikko.hissa@uta.fi>
- *
- *  This program is free software; you can redistribute it and/or modify it
- *  under the terms of the GNU General Public License version 2 as published
- *  by the Free Software Foundation.
- *
  */
 
 #include <stdio.h>
@@ -316,10 +312,12 @@ int decode_image(const char *input_file_name, const char *output_file_name)
 			if (fread(pmodel, 1, cw_header.model_size, fp_input) !=
 				  cw_header.model_size) {
 				fprintf(stderr, "Incorrect header size reading model name!!");
+				free(pmodel);
 				fclose(fp_input);
 				fclose(fp_output);
 				return -1;
 			}
+			free(pmodel);
 		} else {
 			fprintf(stderr, "Incorrect header size reading model name!!");
 			fclose(fp_input);

@@ -3,11 +3,11 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=nat46
 
-PKG_MIRROR_HASH:=3f5ef0a56e9b02c3ec10ec95f3f81c0ed04b983b2d857c16304c379106d6beb6
+PKG_MIRROR_HASH:=a74a9a84605bac6186adf37025b3880eb9cf5931791bb61d47e69b8898cac411
 PKG_SOURCE_URL:=https://github.com/ayourtch/nat46.git
-PKG_SOURCE_DATE:=2017-05-12
+PKG_SOURCE_DATE:=2021-06-24
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=683fbd2b765506332a1af141545652bf58f03166
+PKG_SOURCE_VERSION:=9b3a8197421d987d77e1b9df4159cfe0b9820ee9
 
 PKG_MAINTAINER:=Hans Dedecker <dedeckeh@gmail.com>
 PKG_LICENSE:=GPL-2.0
@@ -26,7 +26,7 @@ endef
 include $(INCLUDE_DIR)/kernel-defaults.mk
 
 define Build/Compile
-	$(KERNEL_MAKE) SUBDIRS="$(PKG_BUILD_DIR)/nat46/modules" \
+	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)/nat46/modules" \
 		MODFLAGS="-DMODULE -mlong-calls" \
 		EXTRA_CFLAGS="-DNAT46_VERSION=\\\"$(PKG_SOURCE_VERSION)\\\"" \
 		modules

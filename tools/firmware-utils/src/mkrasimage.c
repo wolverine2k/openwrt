@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * --- ZyXEL header format ---
  * Original Version by Benjamin Berg <benjamin@sipsolutions.net>
@@ -29,11 +30,6 @@
  *
  * The checksum for the header is calculated over the first 2048 bytes with
  * the rootfs image checksum as the placeholder during calculation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- *
  */
 #include <fcntl.h>
 #include <getopt.h>
@@ -70,6 +66,7 @@ static char *progname;
 static char *board_name = 0;
 static char *version_name = 0;
 static unsigned int rootfs_size = 0;
+static unsigned int header_length = HEADER_PARTITION_LENGTH;
 
 static struct file_info kernel = { NULL, NULL, 0 };
 static struct file_info rootfs = { NULL, NULL, 0 };
@@ -144,6 +141,7 @@ void usage(int status)
             "  -v <version>    version string\n"
             "  -b <boardname>  name of board to generate image for\n"
             "  -o <out_name>   name of output image\n"
+            "  -l <hdr_length> length of header, default 65536\n"
             "  -h              show this screen\n"
     );
 
@@ -315,6 +313,16 @@ int build_image()
         map_file(&kernel);
     map_file(&rootfs);
 
+    /* As ZyXEL Web-GUI only accept images with a rootfs equal or larger than the first firmware shipped
+     * for the device, we need to pad rootfs partition to this size. To perform further calculations, we
+     * decide the size of this part here. In case the rootfs we want to integrate in our image is larger,
+     * take it's size, otherwise the supplied size.
+     *
+     * Be careful! We rely on assertion of correct size to be performed beforehand. It is unknown if images
+     * with a to large rootfs are accepted or not.
+     */
+    rootfs_out.size = rootfs_size < rootfs.size ? rootfs.size : rootfs_size;
+
     /*
      * Allocate memory and copy input rootfs for temporary output rootfs.
      * This is important as we have to generate the rootfs checksum over the
@@ -334,7 +342,7 @@ int build_image()
     board_header = generate_board_header(kernel_header, rootfs_header, board_name);
 
     /* Prepare output file */
-    out.size = HEADER_PARTITION_LENGTH + rootfs_out.size;
+    out.size = header_length + rootfs_out.size;
     if (kernel.name)
         out.size += kernel.size;
     out.data = malloc(out.size);
@@ -345,7 +353,7 @@ int build_image()
     memcpy(out.data + ROOTFS_HEADER_LEN, board_header, BOARD_HEADER_LEN);
     if (kernel.name)
         memcpy(out.data + ROOTFS_HEADER_LEN + BOARD_HEADER_LEN, kernel_header, KERNEL_HEADER_LEN);
-    ptr = HEADER_PARTITION_LENGTH;
+    ptr = header_length;
     memcpy(out.data + ptr, rootfs_out.data, rootfs_out.size);
     ptr += rootfs_out.size;
     if (kernel.name)
@@ -410,7 +418,7 @@ int main(int argc, char *argv[])
     while (1) {
         int c;
 
-        c = getopt(argc, argv, "b:k:o:r:s:v:h");
+        c = getopt(argc, argv, "b:k:o:r:s:v:l:h");
         if (c == -1)
             break;
 
@@ -436,6 +444,9 @@ int main(int argc, char *argv[])
             case 'v':
                 version_name = optarg;
                 break;
+            case 'l':
+                sscanf(optarg, "%u", &header_length);
+                break;
             default:
                 usage(EXIT_FAILURE);
                 break;
@@ -446,14 +457,5 @@ int main(int argc, char *argv[])
     if (ret)
         usage(EXIT_FAILURE);
 
-    /* As ZyXEL Web-GUI only accept images with a rootfs equal or larger than the first firmware shipped
-     * for the device, we need to pad rootfs partition to this size. To perform further calculations, we
-     * decide the size of this part here. In case the rootfs we want to integrate in our image is larger,
-     * take it's size, otherwise the supplied size.
-     *
-     * Be careful! We rely on assertion of correct size to be performed beforehand. It is unknown if images
-     * with a to large rootfs are accepted or not.
-     */
-    rootfs_out.size = rootfs_size < rootfs.size ? rootfs.size : rootfs_size;
     return build_image();
 }

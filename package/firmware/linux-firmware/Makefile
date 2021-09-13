@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=linux-firmware
-PKG_VERSION:=20190815
+PKG_VERSION:=20210511
 PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=@KERNEL/linux/kernel/firmware
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_HASH:=15615d87ac9d93aa5c20939a6c65cca7f3bc656b5e8ffd998b8acb932c854327
+PKG_HASH:=2aa6ae8b9808408f9811ac38f00c188e53e984a2b3990254f6c9c02c1ab13417
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
@@ -26,6 +26,7 @@ define Package/firmware-default
   CATEGORY:=Firmware
   URL:=http://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git
   TITLE:=$(1)
+  DEPENDS:=$(2)
 endef
 
 define Build/Compile

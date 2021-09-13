@@ -1,14 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (C) 2009 Gabor Juhos <juhosg@openwrt.org>
  *
  * This tool was based on:
  *   TP-Link WR941 V2 firmware checksum fixing tool.
  *   Copyright (C) 2008,2009 Wang Jian <lark@linux.net.cn>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- *
  */
 
 #include <stdio.h>
@@ -124,6 +120,12 @@ char md5salt_boot[MD5SUM_LEN] = {
 static struct flash_layout layouts[] = {
 	{
 		.id		= "4Mmtk",
+		.fw_max_len	= 0x3c0000,
+		.kernel_la	= 0x80000000,
+		.kernel_ep	= 0x80000000,
+		.rootfs_ofs	= 0x140000,
+	}, {
+		.id		= "4MLmtk",
 		.fw_max_len	= 0x3d0000,
 		.kernel_la	= 0x80000000,
 		.kernel_ep	= 0x80000000,
@@ -178,7 +180,6 @@ static struct flash_layout layouts[] = {
 static void usage(int status)
 {
 	FILE *stream = (status != EXIT_SUCCESS) ? stderr : stdout;
-	struct board_info *board;
 
 	fprintf(stream, "Usage: %s [OPTIONS...]\n", progname);
 	fprintf(stream,

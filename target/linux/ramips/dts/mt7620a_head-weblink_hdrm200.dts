@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
-/dts-v1/;
 
 #include "mt7620a.dtsi"
 
@@ -25,24 +24,23 @@
 		compatible = "gpio-leds";
 
 		rssi {
-			label = "hdrm200:red:rssi";
+			label = "red:rssi";
 			gpios = <&gpio0 19 GPIO_ACTIVE_LOW>;
 		};
 
 		led_system: system {
-			label = "hdrm200:green:system";
+			label = "green:system";
 			gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
 		};
 
 		air {
-			label = "hdrm200:green:wifi";
+			label = "green:wifi";
 			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
 		};
 	};
 
 	keys {
-		compatible = "gpio-keys-polled";
-		poll-interval = <20>;
+		compatible = "gpio-keys";
 
 		wps {
 			label = "wps";
@@ -98,10 +96,6 @@
 	};
 };
 
-&gpio0 {
-	status = "okay";
-};
-
 &gpio1 {
 	status = "okay";
 };
@@ -123,11 +117,11 @@
 };
 
 &ethernet {
-	status = "okay";
-
-	mtd-mac-address = <&factory 0x4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&rgmii1_pins &rgmii2_pins &mdio_pins>;
+
+	nvmem-cells = <&macaddr_factory_4>;
+	nvmem-cell-names = "mac-address";
 
 	port@4 {
 		status = "okay";
@@ -156,17 +150,20 @@
 	};
 };
 
-&wmac {
-	ralink,mtd-eeprom = <&factory 0>;
+&gsw {
+	mediatek,port4-gmac;
+	mediatek,ephy-base = /bits/ 8 <8>;
 };
 
-&pinctrl {
-	state_default: pinctrl0 {
-		default {
-			ralink,group = "i2c", "uartf", "pa", "spi refclk",
-				       "wled";
-			ralink,function = "gpio";
-		};
+&wmac {
+	ralink,mtd-eeprom = <&factory 0x0>;
+};
+
+&state_default {
+	default {
+		groups = "i2c", "uartf", "pa", "spi refclk",
+			       "wled";
+		function = "gpio";
 	};
 };
 
@@ -184,5 +181,15 @@
 };
 
 &uart {
-    status = "okay";
+	status = "okay";
+};
+
+&factory {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_factory_4: macaddr@4 {
+		reg = <0x4 0x6>;
+	};
 };

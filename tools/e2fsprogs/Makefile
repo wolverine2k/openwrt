@@ -9,8 +9,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=e2fsprogs
 PKG_CPE_ID:=cpe:/a:e2fsprogs_project:e2fsprogs
-PKG_VERSION:=1.45.3
-PKG_HASH:=90d10066b815e27b0b4875f0d5e396c663e0bf55aa3ca10868978d10c6ffe595
+PKG_VERSION:=1.46.2
+PKG_HASH:=23aa093295c94e71ef1be490c4004871c5b01d216a8cb4d111fa6c0aac354168
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
@@ -21,15 +21,16 @@ HOST_BUILD_PARALLEL:=1
 include $(INCLUDE_DIR)/host-build.mk
 
 ifneq ($(shell $(HOSTCC) --version | grep clang),)
-  HOST_CFLAGS += -D__GNUC_PREREQ\(...\)=0
+  HOST_CFLAGS += -D__GNUC_PREREQ\(...\)=0 -Dloff_t=off_t
 endif
-HOST_CFLAGS += $(FPIC)
+HOST_CFLAGS += $(HOST_FPIC)
 
 HOST_CONFIGURE_ARGS += \
 	--disable-elf-shlibs \
 	--enable-libuuid \
 	--disable-tls \
-	--disable-nls
+	--disable-nls \
+	--enable-threads=pth
 
 define Host/Prepare
 	$(call Host/Prepare/Default)

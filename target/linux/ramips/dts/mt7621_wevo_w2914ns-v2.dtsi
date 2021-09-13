@@ -4,41 +4,46 @@
 #include <dt-bindings/input/input.h>
 
 / {
-	compatible = "wevo,w2914ns-v2", "mediatek,mt7621-soc";
+	aliases {
+		label-mac-device = &wan;
+	};
 
-	chosen {
-		bootargs = "console=ttyS0,57600";
+	leds {
+		compatible = "gpio-leds";
+
+		usb {
+			label = "green:usb";
+			gpios = <&gpio 27 GPIO_ACTIVE_LOW>;
+			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
+			linux,default-trigger = "usbport";
+		};
 	};
 
 	keys {
-		compatible = "gpio-keys-polled";
-		poll-interval = <20>;
+		compatible = "gpio-keys";
 
 		reset {
 			label = "reset";
-			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 
 		wps {
 			label = "wps";
-			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
 };
 
-&xhci {
-	status = "okay";
-};
-
 &spi0 {
 	status = "okay";
 
-	m25p80@0 {
+	flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		spi-max-frequency = <10000000>;
+		spi-max-frequency = <80000000>;
+		m25p,fast-read;
 
 		partitions {
 			compatible = "fixed-partitions";
@@ -78,30 +83,83 @@
 
 &pcie0 {
 	wifi@0,0 {
-		compatible = "pci14c3,7603";
+		compatible = "mediatek,mt76";
 		reg = <0x0000 0 0 0 0>;
-		mediatek,mtd-eeprom = <&factory 0x0000>;
+		mediatek,mtd-eeprom = <&factory 0x0>;
+
+		led {
+			led-sources = <0>;
+			led-active-low;
+		};
 	};
 };
 
 &pcie1 {
 	wifi@0,0 {
-		compatible = "pci14c3,7662";
+		compatible = "mediatek,mt76";
 		reg = <0x0000 0 0 0 0>;
 		mediatek,mtd-eeprom = <&factory 0x8000>;
 		ieee80211-freq-limit = <5000000 6000000>;
+
+		led {
+			led-sources = <2>;
+			led-active-low;
+		};
 	};
 };
 
-&ethernet {
-	mtd-mac-address = <&factory 0xe000>;
+&gmac0 {
+	nvmem-cells = <&macaddr_factory_e000>;
+	nvmem-cell-names = "mac-address";
 };
 
-&pinctrl {
-	state_default: pinctrl0 {
-		gpio {
-			ralink,group = "wdt", "rgmii2", "jtag", "mdio";
-			ralink,function = "gpio";
+&switch0 {
+	ports {
+		port@0 {
+			status = "okay";
+			label = "lan4";
 		};
+
+		port@1 {
+			status = "okay";
+			label = "lan3";
+		};
+
+		port@2 {
+			status = "okay";
+			label = "lan2";
+		};
+
+		port@3 {
+			status = "okay";
+			label = "lan1";
+		};
+		wan: port@4 {
+			status = "okay";
+			label = "wan";
+			nvmem-cells = <&macaddr_factory_2e>;
+			nvmem-cell-names = "mac-address";
+		};
+	};
+};
+
+&state_default {
+	gpio {
+		groups = "wdt", "rgmii2";
+		function = "gpio";
+	};
+};
+
+&factory {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_factory_2e: macaddr@2e {
+		reg = <0x2e 0x6>;
+	};
+
+	macaddr_factory_e000: macaddr@e000 {
+		reg = <0xe000 0x6>;
 	};
 };

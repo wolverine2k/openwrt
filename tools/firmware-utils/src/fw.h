@@ -1,24 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  *  * Copyright (C) 2007 Ubiquiti Networks, Inc.
- *   *
- *    * This program is free software; you can redistribute it and/or
- *     * modify it under the terms of the GNU General Public License as
- *      * published by the Free Software Foundation; either version 2 of the
- *       * License, or (at your option) any later version.
- *        *
- *         * This program is distributed in the hope that it will be useful, but
- *          * WITHOUT ANY WARRANTY; without even the implied warranty of
- *           * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *            * General Public License for more details.
- *             *
- *              * You should have received a copy of the GNU General Public License
- *               * along with this program; if not, write to the Free Software
- *                * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *                 */
+ */
 
 #ifndef FW_INCLUDED
 #define FW_INCLUDED
 
+#include <stdint.h>
 #include <sys/types.h>
 
 #define MAGIC_HEADER	"OPEN"
@@ -39,7 +27,7 @@ typedef struct header {
 typedef struct part {
 	char magic[MAGIC_LENGTH];
 	char name[PART_NAME_LENGTH];
-	char pad[12];
+	uint8_t pad[12];
 	u_int32_t memaddr;
 	u_int32_t index;
 	u_int32_t baseaddr;
@@ -54,13 +42,13 @@ typedef struct part_crc {
 } __attribute__ ((packed)) part_crc_t;
 
 typedef struct signature {
-	char magic[MAGIC_LENGTH];
+	uint8_t magic[MAGIC_LENGTH];
 	u_int32_t crc;
 	u_int32_t pad;
 } __attribute__ ((packed)) signature_t;
 
 typedef struct signature_rsa {
-	char magic[MAGIC_LENGTH];
+	uint8_t magic[MAGIC_LENGTH];
 //	u_int32_t crc;
 	unsigned char rsa_signature[256];
 	u_int32_t pad;

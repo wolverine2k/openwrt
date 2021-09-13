@@ -8,19 +8,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mbedtls
-PKG_VERSION:=2.16.2
-PKG_RELEASE:=1
+PKG_VERSION:=2.16.11
+PKG_RELEASE:=$(AUTORELEASE)
 PKG_USE_MIPS16:=0
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-gpl.tgz
-PKG_SOURCE_URL:=https://tls.mbed.org/download/
-PKG_HASH:=40d18965dd36ce0158a2b037c8c54401bad54f683f4311502518ee1a1a0b622c
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://codeload.github.com/ARMmbed/mbedtls/tar.gz/v$(PKG_VERSION)?
+PKG_HASH:=c18e7e9abf95e69e425260493720470021384a1728417042060a35d0b7b18b41
 
-PKG_BUILD_PARALLEL:=1
-PKG_LICENSE:=GPL-2.0+
+PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE_FILES:=gpl-2.0.txt
 PKG_CPE_ID:=cpe:/a:arm:mbed_tls
 
-PKG_CONFIG_DEPENDS:=CONFIG_LIBMBEDTLS_DEBUG_C
+PKG_CONFIG_DEPENDS := \
+	CONFIG_LIBMBEDTLS_DEBUG_C \
+	CONFIG_LIBMBEDTLS_HKDF_C
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -56,6 +58,14 @@ config LIBMBEDTLS_DEBUG_C
 	 by around 60 KiB (for an ARMv5 platform).
 
 	 Usually, you don't need this, so don't select this if you're unsure.
+
+config LIBMBEDTLS_HKDF_C
+	depends on PACKAGE_libmbedtls
+	bool "Enable the HKDF algorithm (RFC 5869)"
+	default n
+	help
+	 This option adds support for the Hashed Message Authentication Code
+	 (HMAC)-based key derivation function (HKDF).
 endef
 
 define Package/mbedtls-util
@@ -77,8 +87,6 @@ This package contains mbedtls helper programs for private key and
 CSR generation (gen_key, cert_req)
 endef
 
-PKG_INSTALL:=1
-
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
 TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS))
 
@@ -92,6 +100,13 @@ define Build/Configure
 
 	awk 'BEGIN { rc = 1 } \
 	     /#define MBEDTLS_DEBUG_C/ { $$$$0 = "$(if $(CONFIG_LIBMBEDTLS_DEBUG_C),,// )#define MBEDTLS_DEBUG_C"; rc = 0 } \
+	     { print } \
+	     END { exit(rc) }' $(PKG_BUILD_DIR)/include/mbedtls/config.h \
+	     >$(PKG_BUILD_DIR)/include/mbedtls/config.h.new && \
+	mv $(PKG_BUILD_DIR)/include/mbedtls/config.h.new $(PKG_BUILD_DIR)/include/mbedtls/config.h
+
+	awk 'BEGIN { rc = 1 } \
+	     /#define MBEDTLS_HKDF_C/ { $$$$0 = "$(if $(CONFIG_LIBMBEDTLS_HKDF_C),,// )#define MBEDTLS_HKDF_C"; rc = 0 } \
 	     { print } \
 	     END { exit(rc) }' $(PKG_BUILD_DIR)/include/mbedtls/config.h \
 	     >$(PKG_BUILD_DIR)/include/mbedtls/config.h.new && \

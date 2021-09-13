@@ -1,14 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
- * Device Tree file for the Netgear EX2700
- *
  * Copyright (C) 2016 Joseph C. Lehner <joseph.c.lehner@gmail.com>
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
  */
-
-/dts-v1/;
 
 #include "mt7620a.dtsi"
 
@@ -26,53 +19,8 @@
 		led-upgrade = &led_power_green;
 	};
 
-	chosen {
-		bootargs = "console=ttyS0,57600";
-	};
-
-	leds {
-		compatible = "gpio-leds";
-
-		led_power_green: power_g {
-			label = "ex2700:green:power";
-			gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
-			default-state = "on";
-		};
-
-		power_r {
-			label = "ex2700:red:power";
-			gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
-		};
-
-		device_g {
-			label = "ex2700:green:device";
-			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
-		};
-
-		device_r {
-			label = "ex2700:red:device";
-			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
-		};
-
-		router_g {
-			label = "ex2700:green:router";
-			gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
-		};
-
-		router_r {
-			label = "ex2700:red:router";
-			gpios = <&gpio0 14 GPIO_ACTIVE_LOW>;
-		};
-
-		wps {
-			label = "ex2700:green:wps";
-			gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
-		};
-	};
-
 	keys {
-		compatible = "gpio-keys-polled";
-		poll-interval = <20>;
+		compatible = "gpio-keys";
 
 		reset {
 			label = "reset";
@@ -86,10 +34,46 @@
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
-};
 
-&gpio0 {
-	status = "okay";
+	leds {
+		compatible = "gpio-leds";
+
+		led_power_green: power_g {
+			label = "green:power";
+			gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		power_r {
+			label = "red:power";
+			gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
+		};
+
+		device_g {
+			label = "green:device";
+			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+		};
+
+		device_r {
+			label = "red:device";
+			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+		};
+
+		router_g {
+			label = "green:router";
+			gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+		};
+
+		router_r {
+			label = "red:router";
+			gpios = <&gpio0 14 GPIO_ACTIVE_LOW>;
+		};
+
+		wps {
+			label = "green:wps";
+			gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
+		};
+	};
 };
 
 &gpio1 {
@@ -99,7 +83,7 @@
 &spi0 {
 	status = "okay";
 
-	m25p80@0 {
+	flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <10000000>;
@@ -137,19 +121,34 @@
 };
 
 &ethernet {
-	mtd-mac-address = <&art 0x0>;
+	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cell-names = "mac-address";
 };
 
 &wmac {
-	mtd-mac-address = <&art 0x6>;
 	ralink,mtd-eeprom = <&art 0x1000>;
+
+	nvmem-cells = <&macaddr_art_6>;
+	nvmem-cell-names = "mac-address";
 };
 
-&pinctrl {
-	state_default: pinctrl0 {
-		default {
-			ralink,group = "i2c", "uartf", "spi refclk";
-			ralink,function = "gpio";
-		};
+&state_default {
+	default {
+		groups = "i2c", "uartf", "spi refclk";
+		function = "gpio";
+	};
+};
+
+&art {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_art_0: macaddr@0 {
+		reg = <0x0 0x6>;
+	};
+
+	macaddr_art_6: macaddr@6 {
+		reg = <0x6 0x6>;
 	};
 };

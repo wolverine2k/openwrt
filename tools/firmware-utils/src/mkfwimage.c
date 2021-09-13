@@ -1,20 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * Copyright (C) 2007 Ubiquiti Networks, Inc.
  * Copyright (C) 2008 Lukas Kuna <ValXdater@seznam.cz>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #include <sys/types.h>
@@ -32,6 +19,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include "fw.h"
+#include "utils.h"
 
 typedef struct fw_layout_data {
 	u_int32_t	kern_start;
@@ -111,6 +99,15 @@ struct fw_info fw_info[] = {
 		.sign = false,
 	},
 	{
+		.name = "SW",
+		.fw_layout = {
+			.kern_start	=	0x9f050000,
+			.kern_entry	=	0x80002000,
+			.firmware_max_length=	0x00760000,
+		},
+		.sign = false,
+	},
+	{
 		.name = "UBDEV01",
 		.fw_layout = {
 			.kern_start	=	0x9f050000,
@@ -121,6 +118,24 @@ struct fw_info fw_info[] = {
 	},
 	{
 		.name = "WA",
+		.fw_layout = {
+			.kern_start	=	0x9f050000,
+			.kern_entry	=	0x80002000,
+			.firmware_max_length=	0x00F60000,
+		},
+		.sign = true,
+	},
+	{
+		.name = "XC",
+		.fw_layout = {
+			.kern_start	=	0x9f050000,
+			.kern_entry	=	0x80002000,
+			.firmware_max_length=	0x00F60000,
+		},
+		.sign = true,
+	},
+	{
+		.name = "ACB",
 		.fw_layout = {
 			.kern_start	=	0x9f050000,
 			.kern_entry	=	0x80002000,
@@ -177,13 +192,12 @@ static void write_header(void* mem, const char *magic, const char* version)
 	header_t* header = mem;
 	memset(header, 0, sizeof(header_t));
 
-	memcpy(header->magic, magic, MAGIC_LENGTH);
-	strncpy(header->version, version, sizeof(header->version));
-	header->crc = htonl(crc32(0L, (unsigned char *)header,
-				sizeof(header_t) - 2 * sizeof(u_int32_t)));
+	FW_MEMCPY_STR(header->magic, magic);
+	FW_MEMCPY_STR(header->version, version);
+	header->crc = htonl(crc32(0L, (uint8_t*) header,
+			    sizeof(header_t) - 2 * sizeof(u_int32_t)));
 	header->pad = 0L;
 }
-
 
 static void write_signature(void* mem, u_int32_t sig_offset)
 {
@@ -191,7 +205,7 @@ static void write_signature(void* mem, u_int32_t sig_offset)
 	signature_t* sign = (signature_t*)(mem + sig_offset);
 	memset(sign, 0, sizeof(signature_t));
 
-	memcpy(sign->magic, MAGIC_END, MAGIC_LENGTH);
+	FW_MEMCPY_STR(sign->magic, MAGIC_END);
 	sign->crc = htonl(crc32(0L,(unsigned char *)mem, sig_offset));
 	sign->pad = 0L;
 }
@@ -202,7 +216,7 @@ static void write_signature_rsa(void* mem, u_int32_t sig_offset)
 	signature_rsa_t* sign = (signature_rsa_t*)(mem + sig_offset);
 	memset(sign, 0, sizeof(signature_rsa_t));
 
-	memcpy(sign->magic, MAGIC_ENDS, MAGIC_LENGTH);
+	FW_MEMCPY_STR(sign->magic, MAGIC_ENDS);
 //	sign->crc = htonl(crc32(0L,(unsigned char *)mem, sig_offset));
 	sign->pad = 0L;
 }
@@ -232,8 +246,8 @@ static int write_part(void* mem, part_data_t* d)
 	munmap(addr, d->stats.st_size);
 
 	memset(p->name, 0, PART_NAME_LENGTH);
-	memcpy(p->magic, MAGIC_PART, MAGIC_LENGTH);
-	memcpy(p->name, d->partition_name, PART_NAME_LENGTH);
+	FW_MEMCPY_STR(p->magic, MAGIC_PART);
+	FW_MEMCPY_STR(p->name, d->partition_name);
 
 	p->index = htonl(d->partition_index);
 	p->data_size = htonl(d->stats.st_size);
@@ -437,6 +451,7 @@ static int build_image(image_info_t* im)
 	if ((f = fopen(im->outputfile, "w")) == NULL)
 	{
 		ERROR("Can not create output file: '%s'\n", im->outputfile);
+		free(mem);
 		return -10;
 	}
 
@@ -444,6 +459,8 @@ static int build_image(image_info_t* im)
 	{
 		ERROR("Could not write %d bytes into file: '%s'\n",
 				mem_size, im->outputfile);
+		free(mem);
+		fclose(f);
 		return -11;
 	}
 
