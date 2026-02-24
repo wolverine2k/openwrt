@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ustream-ssl
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/ustream-ssl.git
-PKG_SOURCE_DATE:=2020-12-10
-PKG_SOURCE_VERSION:=68d09243b6fd4473004b27ff6483352e76e6af1a
-PKG_MIRROR_HASH:=a620090dee08c0624d167c10e9e45d54aa2b953a1f356eff7325a8fe53c622e6
+PKG_SOURCE_DATE:=2025-10-03
+PKG_SOURCE_VERSION:=5a81c108d20e24724ed847cc4be033f2a74e6635
+PKG_MIRROR_HASH:=e251189ed315f22ab63dc6f17b03178676e10c21fff0cdd863b294a3c51a1b5b
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=ISC
@@ -44,7 +44,7 @@ endef
 define Package/libustream-mbedtls
   $(Package/libustream/default)
   TITLE += (mbedtls)
-  DEPENDS += +libmbedtls
+  DEPENDS += +PACKAGE_libustream-mbedtls:libmbedtls
   CONFLICTS := libustream-openssl libustream-wolfssl
   VARIANT:=mbedtls
   DEFAULT_VARIANT:=1

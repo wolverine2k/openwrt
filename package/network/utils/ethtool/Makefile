@@ -8,16 +8,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ethtool
-PKG_VERSION:=5.13
-PKG_RELEASE:=2
+PKG_VERSION:=6.15
+PKG_RELEASE:=1
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/software/network/ethtool
-PKG_HASH:=e63a7254c6cf2e443d9989c8c34a94e136d789ae1cf5da55397439b055e48cf3
+PKG_HASH:=9477c365114d910120aaec5336a1d16196c833d8486f7c6da67bedef57880ade
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:kernel:ethtool
 
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
@@ -25,22 +26,26 @@ PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/ethtool
+define Package/ethtool/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Display or change ethernet card settings
-  URL:=http://www.kernel.org/pub/software/network/ethtool/
+  URL:=https://www.kernel.org/pub/software/network/ethtool/
+endef
+
+define Package/ethtool
+$(call Package/ethtool/Default)
   VARIANT:=tiny
   CONFLICTS:=ethtool-full
+  DEFAULT_VARIANT:=1
 endef
 
 define Package/ethtool-full
-  $(Package/ethtool)
+$(call Package/ethtool/Default)
   TITLE += (full)
   VARIANT:=full
   PROVIDES:=ethtool
   DEPENDS:=+libmnl
-  CONFLICTS:=
 endef
 
 define Package/ethtool/description
@@ -55,6 +60,9 @@ CONFIGURE_ARGS += --enable-netlink --enable-pretty-dump
 else
 CONFIGURE_ARGS += --disable-netlink --disable-pretty-dump
 endif
+
+# enable support for input_xfrm with kernels newer than 6.6
+CONFIGURE_ARGS += --enable-rss-input-xfrm
 
 define Package/ethtool/install
 	$(INSTALL_DIR) $(1)/usr/sbin

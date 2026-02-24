@@ -7,11 +7,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bison
-PKG_VERSION:=3.7.6
+PKG_VERSION:=3.8.2
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
-PKG_HASH:=67d68ce1e22192050525643fc0a7a22297576682bef6a5c51446903f5aeef3cf
+PKG_HASH:=06c9e13bdf7eb24d4ceb6b59205a4f67c2c7e7213119644430fe82fbd14a0abb
+PKG_CPE_ID:=cpe:/a:gnu:bison
 
 HOST_BUILD_PARALLEL:=1
 
@@ -19,14 +20,14 @@ include $(INCLUDE_DIR)/host-build.mk
 
 HOST_CONFIGURE_ARGS += --enable-threads=posix --disable-nls
 
-define Host/Clean
-	-$(MAKE) -C $(HOST_BUILD_DIR) uninstall
-	$(call Host/Clean/Default)
+define Host/Install
+	$(call Host/Compile/Default,install aclocal_DATA=) # Macro provided by gnulib
+	$(INSTALL_BIN) ./scripts/yacc $(STAGING_DIR_HOST)/bin/yacc
 endef
 
-define Host/Install
-	$(call Host/Install/Default)
-	$(INSTALL_BIN) ./scripts/yacc $(STAGING_DIR_HOST)/bin/yacc
+define Host/Uninstall
+	rm -f $(STAGING_DIR_HOST)/bin/yacc
+	-$(call Host/Compile/Default,uninstall aclocal_DATA=) # Macro provided by gnulib
 endef
 
 $(eval $(call HostBuild))
